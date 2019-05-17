@@ -9,9 +9,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $(".btnanalyze").click(function () {
-            console.log("process");
             var item = $(this).closest("tr").find(".input-url").val();
-            console.log(item);
 
             var subscriptionKey = "5d09831348cd4a6aa5f634e13ae9fd76";
             var uriBase = "https://southeastasia.api.cognitive.microsoft.com/vision/v2.0/analyze";
@@ -22,7 +20,6 @@
                 "language": "en",
             };
             var sourceImageUrl = item;
-            console.log(sourceImageUrl);
             document.querySelector("#sourceImage").src = sourceImageUrl;
 
             $.ajax({
