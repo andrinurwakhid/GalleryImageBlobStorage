@@ -1,0 +1,134 @@
+﻿@page
+@model MyPhotoGallery.Pages.ImageGalleryModel
+@{
+    ViewData["Title"] = "ImageGallery";
+}
+
+<h2>Image Gallery</h2>
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".btnanalyze").click(function () {
+            console.log("process");
+            var item = $(this).closest("tr").find(".input-url").val();
+            console.log(item);
+
+            var subscriptionKey = "5d09831348cd4a6aa5f634e13ae9fd76";
+            var uriBase = "https://southeastasia.api.cognitive.microsoft.com/vision/v2.0/analyze";
+
+            var params = {
+                "visualFeatures": "Categories,Description,Color",
+                "details": "",
+                "language": "en",
+            };
+            var sourceImageUrl = item;
+            console.log(sourceImageUrl);
+            document.querySelector("#sourceImage").src = sourceImageUrl;
+
+            $.ajax({
+
+                url: uriBase + "?" + $.param(params),
+
+                beforeSend: function (xhrObj) {
+                    xhrObj.setRequestHeader("Content-Type", "application/json");
+                    xhrObj.setRequestHeader(
+                        "Ocp-Apim-Subscription-Key", subscriptionKey);
+                },
+
+                type: "POST",
+
+                data: '{"url": ' + '"' + sourceImageUrl + '"}',
+            })
+
+                .done(function (data) {
+                    $("#responseTextArea").val(JSON.stringify(data, null, 2));
+                })
+
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    var errorString = (errorThrown === "") ? "Error. " :
+                        errorThrown + " (" + jqXHR.status + "): ";
+                    errorString += (jqXHR.responseText === "") ? "" :
+                        jQuery.parseJSON(jqXHR.responseText).message;
+                    alert(errorString);
+                });
+        });
+    });
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        @if (ViewData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <strong>@ViewData["SuccessMessage"]</strong>
+            </div>
+        }
+    </div>
+</div>
+<div class="row">
+    @if (Model.GalleryImages.Count > 0)
+    {
+        <table border=1 height="300" width="300">
+            <thead>
+                <tr>
+                    <th style="text-align:center; width:300px"><b>IMAGE</b></th>
+                    <th style="text-align:center; width:300px"><b>CAPTION</b></th>
+                    <th style="text-align:center; width:300px"><b>ACTION</b></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var image in Model.GalleryImages)
+                {
+                    <tr>
+                        <td style="text-align:center; width:300px">
+                            <a href="@image.URL" class="thumbnail">
+                                <img src="@image.URL" alt="..." width="600">
+                            </a>
+                            <input hidden type="text" name="inputImage" id="inputImage" value="@image.URL" class="input-url" />
+                        </td>
+                        <td style="text-align:center; width:300px">
+                            @if (image.Caption != null)
+                            {
+                                <p>@image.Caption</p>
+                            }
+                            else
+                            {
+                                <p>No caption available for this image</p>
+                            }
+                        </td>
+                        <td style="text-align:center; width:300px">
+                            <button class="btnanalyze" style="text-align:center; width:100px" type="button">Analyze</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <h1>No Images to display!</h1>
+    }
+</div>
+
+
+<h1>Analyze image:</h1>
+<br><br>
+<div id="wrapper" style="width:1020px; display:table;">
+    <div id="jsonOutput" style="width:600px; display:table-cell;">
+        Response:
+        <br><br>
+        <textarea id="responseTextArea" class="UIInput"
+                  style="width:580px; height:400px;"></textarea>
+    </div>
+    <div id="imageDiv" style="width:420px; display:table-cell;">
+        Source image:
+        <br><br>
+        <img id="sourceImage" width="400" />
+    </div>
+</div>
+
